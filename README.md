@@ -1,75 +1,71 @@
-Particle Infection Simulation
+Infection Spread Simulation
 Overview
-This Python script simulates the spread of an infection through a population of moving particles within a defined area. The simulation includes cities that can become infected, checkpoints that block infection spread, and particles that move either randomly or towards infected particles based on a gradient method. The simulation visualizes the process using Matplotlib, saving snapshots at regular intervals.
+This project simulates the spread of an infection across a 2D plane with particles and cities, using a combination of random movement and gradient-based attraction towards infected particles. The simulation visualizes the spread of infection over time, with particles moving in a grid and cities becoming infected when infected particles reach them. Snapshots of the simulation are saved as images at regular intervals.
 Features
 
-Particles: Move in fixed directions (up, right, down, left) or towards infected particles within a threshold distance.
-Cities: Circular areas that can become infected if an infected particle is nearby.
-Checkpoints: Rectangular barriers that prevent infection spread between particles.
-Infection Spread: Particles become infected and stuck when they collide with infected particles, unless blocked by a checkpoint.
-Visualization: Snapshots of the simulation are saved as PNG images every 500 steps.
-Dynamic Particle Management: Maintains a constant number of free (non-infected, non-stuck) particles by adding new ones as needed.
-Simulation Termination: Stops when the infection reaches the simulation boundaries or after a maximum number of steps (100,000).
+Particles: Free particles move randomly or towards infected particles within a threshold distance. Infected particles are static and can infect nearby free particles.
+Cities: Represented as circular regions, cities become infected when an infected particle is within their radius.
+Simulation Mechanics:
+Particles move in four directions (up, right, down, left) with a fixed direction unless influenced by an infected particle.
+The simulation maintains a constant number of free particles (200) by spawning new ones as needed.
+The simulation stops if an infected particle reaches the edge of the simulation area or after 100,000 steps.
 
-Requirements
+
+Visualization: Snapshots are saved every 200 steps as PNG images in the simulation_images directory, showing particles (blue for free, red for infected) and cities (yellow for uninfected, red for infected).
+
+Prerequisites
 
 Python 3.x
-Libraries:
+Required Python libraries:
 matplotlib
-numpy (used implicitly via matplotlib)
+random
+math
+os
 
 
 
-Install dependencies using:
-pip install matplotlib
+Installation
+
+Clone or download this repository.
+Install the required Python libraries:pip install matplotlib
+
+
+Ensure you have Python 3.x installed.
 
 Usage
 
-Save the script as simulation.py.
+Place the simulation script (e.g., simulation.py) in a directory.
 Run the script:python simulation.py
 
 
-The simulation will create a directory named simulation_images and save snapshot images (snapshot_step_<step>.png) every 500 steps.
-The simulation runs until the infection reaches the edge of the simulation area or the maximum step count is reached.
-Upon completion, the script prints the number of steps taken and the location of saved images.
+The simulation will:
+Create a simulation_images directory if it doesn't exist.
+Run for up to 100,000 steps or until an infected particle reaches the edge.
+Save snapshot images every 200 steps in the simulation_images directory.
+
+
+Check the simulation_images directory for output PNG files named snapshot_step_X.png.
 
 Configuration
-The simulation parameters are defined as constants at the top of the script:
+The simulation parameters can be modified in the script by adjusting the following constants:
 
-WIDTH, HEIGHT: Simulation area dimensions (800x600 pixels).
-GRID_SIZE: Particle size and movement step (3 pixels).
-INITIAL_PARTICLE_COUNT: Starting number of free particles (200).
-TARGET_FREE_PARTICLES: Number of free particles to maintain (200).
-CITY_RADIUS: Radius of cities (20 pixels).
-CHECKPOINT_SIZE: Dimensions of checkpoints (30x5 pixels).
-GRADIENT_DISTANCE_THRESHOLD: Distance for gradient-based movement (50 pixels).
-SNAPSHOT_INTERVAL: Steps between snapshots (500).
-MAX_STEPS: Maximum simulation steps (100,000).
+WIDTH, HEIGHT: Simulation area dimensions (default: 800x600 pixels).
+GRID_SIZE: Size of each particle (default: 3 pixels).
+INITIAL_PARTICLE_COUNT: Initial number of free particles (default: 200).
+TARGET_FREE_PARTICLES: Target number of free particles to maintain (default: 200).
+CITY_RADIUS: Radius of cities (default: 20 pixels).
+GRADIENT_DISTANCE_THRESHOLD: Distance for gradient-based movement (default: 50 pixels).
+SNAPSHOT_INTERVAL: Steps between saving images (default: 200).
+MAX_STEPS: Maximum simulation steps (default: 100,000).
 
-Modify these constants to adjust the simulation behavior.
 Output
 
-Images: Saved in the simulation_images directory with filenames like snapshot_step_0.png, snapshot_step_500.png, etc.
-Console Output: Displays the total number of steps and the location of saved images upon completion.
-
-Simulation Details
-
-Particles: Start with 200 free particles and 5 infected particles in the first city. Free particles move in one of four directions unless near an infected particle, then move towards it.
-Cities: Six cities are placed at fixed positions. The first city is initially infected. Cities become infected if an infected particle is within their radius.
-Checkpoints: Randomly placed between adjacent cities (sorted by x-coordinate) with a 50% chance. They block infection if both particles are near the checkpoint.
-Movement: Particles bounce off simulation boundaries and maintain a grid-based movement (multiples of GRID_SIZE).
-Infection: A free particle becomes infected and stuck upon colliding with an infected particle, unless a checkpoint blocks the spread.
-Termination: The simulation stops if an infected particle reaches the edge or after 100,000 steps.
+Console Output: Displays the number of steps taken when the simulation completes.
+Image Output: PNG files in the simulation_images directory, showing the state of particles and cities at each snapshot interval.
 
 Notes
 
-The simulation uses a simple random walk for particle movement when not influenced by infected particles.
-Checkpoints are oriented randomly, affecting their blocking effectiveness.
-The script ensures particles do not spawn inside cities or checkpoints.
-Matplotlib plots are closed after saving to prevent memory issues.
-
-
-Check the simulation_images directory for PNG files showing the simulation state at various steps.
-
-
+The simulation assumes a 2D grid where particles move in discrete steps.
+Cities are initialized with one city infected, and five infected particles are placed in it to start the spread.
+The simulation is deterministic for a given random seed but appears stochastic due to random particle placement and movement.
 
