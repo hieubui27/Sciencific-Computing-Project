@@ -10,9 +10,8 @@ GRID_SIZE = 3  # Size of each particle (pixels)
 INITIAL_PARTICLE_COUNT = 200  # Initial number of free particles
 TARGET_FREE_PARTICLES = 200  # Target number of free particles to maintain
 CITY_RADIUS = 20  # Radius of cities
-CHECKPOINT_SIZE = (30, 5)  # Size of checkpoint (width, height)
 GRADIENT_DISTANCE_THRESHOLD = 50  # Distance threshold for gradient-based movement (pixels)
-SNAPSHOT_INTERVAL = 500  # Save image every 500 steps
+SNAPSHOT_INTERVAL = 200  # Save image every 500 steps
 MAX_STEPS = 100000  # Maximum simulation steps
 
 # Four possible directions (up, right, down, left)
@@ -31,14 +30,6 @@ class City:
         self.radius = radius
         self.infected = False
 
-# Checkpoint class
-class Checkpoint:
-    def __init__(self, x, y, angle):
-        self.x = x
-        self.y = y
-        self.angle = angle
-        self.width, self.height = CHECKPOINT_SIZE
-
 # Particle class
 class Particle:
     def __init__(self, x, y, infected=False, stuck=False):
@@ -48,7 +39,7 @@ class Particle:
         self.stuck = stuck
         self.fixed_direction = random.choice(DIRECTIONS)
 
-    def move(self, particles, cities, checkpoints):
+    def move(self, particles, cities):
         if not self.infected and not self.stuck:
             # Find the closest infected particle
             closest_infected = None
@@ -75,24 +66,11 @@ class Particle:
             self.x = max(0, min(self.x, WIDTH - GRID_SIZE))
             self.y = max(0, min(self.y, HEIGHT - GRID_SIZE))
 
-    def check_collision(self, particles, cities, checkpoints):
+    def check_collision(self, particles, cities):
         if not self.infected and not self.stuck:
             for p in particles:
                 if p.infected:
-                    # Check if there is a checkpoint blocking the infection spread
-                    blocked = False
-                    for checkpoint in checkpoints:
-                        dist_to_checkpoint_self = math.sqrt((self.x - checkpoint.x) ** 2 + (self.y - checkpoint.y) ** 2)
-                        dist_to_checkpoint_infected = math.sqrt((p.x - checkpoint.x) ** 2 + (p.y - checkpoint.y) ** 2)
-                        if dist_to_checkpoint_self <= max(CHECKPOINT_SIZE) or dist_to_checkpoint_infected <= max(CHECKPOINT_SIZE):
-                            dist_between_particles = math.sqrt((self.x - p.x) ** 2 + (self.y - p.y) ** 2)
-                            if dist_to_checkpoint_self + dist_to_checkpoint_infected <= dist_between_particles + 10:
-                                blocked = True
-                                break
-                    if blocked:
-                        continue
-
-                    # If not blocked, check for infection
+                    # Check for infection
                     if abs(self.x - p.x) <= GRID_SIZE and abs(self.y - p.y) <= GRID_SIZE:
                         self.infected = True
                         self.stuck = True
@@ -120,33 +98,18 @@ cities = [
 # Sort cities by x-coordinate to determine adjacent pairs
 cities.sort(key=lambda city: city.x)
 
-# Create checkpoints between adjacent cities
-checkpoints = []
-for i in range(len(cities) - 1):
-    city1 = cities[i]
-    city2 = cities[i + 1]
-    if random.random() < 0.5:
-        mid_x = (city1.x + city2.x) // 2
-        mid_y = (city1.y + city2.y) // 2
-        angle = random.uniform(0, 360)
-        checkpoints.append(Checkpoint(mid_x, mid_y, angle))
-
 # Initialize particles
 particles = []
 for _ in range(INITIAL_PARTICLE_COUNT):
     while True:
         x = random.randint(0, WIDTH - GRID_SIZE)
         y = random.randint(0, HEIGHT - GRID_SIZE)
-        in_city_or_checkpoint = False
+        in_city = False
         for city in cities:
             if math.sqrt((x - city.x) ** 2 + (y - city.y) ** 2) <= city.radius:
-                in_city_or_checkpoint = True
+                in_city = True
                 break
-        for checkpoint in checkpoints:
-            if math.sqrt((x - checkpoint.x) ** 2 + (y - checkpoint.y) ** 2) <= max(CHECKPOINT_SIZE):
-                in_city_or_checkpoint = True
-                break
-        if not in_city_or_checkpoint:
+        if not in_city:
             break
     particles.append(Particle(x, y))
 
@@ -178,7 +141,7 @@ while step < MAX_STEPS and infection_active:
     if infection_active:
         particles_to_remove = []
         for particle in particles:
-            particle.move(particles, cities, checkpoints)
+            particle.move(particles, cities)
             if particle.is_at_edge():
                 particles_to_remove.append(particle)
 
@@ -187,7 +150,7 @@ while step < MAX_STEPS and infection_active:
                 particles.remove(particle)
 
         for particle in particles:
-            particle.check_collision(particles, cities, checkpoints)
+            particle.check_collision(particles, cities)
 
         # Maintain the number of free particles at 200
         free_particles = sum(1 for p in particles if not p.infected and not p.stuck)
@@ -195,16 +158,12 @@ while step < MAX_STEPS and infection_active:
             while True:
                 x = random.randint(0, WIDTH - GRID_SIZE)
                 y = random.randint(0, HEIGHT - GRID_SIZE)
-                in_city_or_checkpoint = False
+                in_city = False
                 for city in cities:
                     if math.sqrt((x - city.x) ** 2 + (y - city.y) ** 2) <= city.radius:
-                        in_city_or_checkpoint = True
+                        in_city = True
                         break
-                for checkpoint in checkpoints:
-                    if math.sqrt((x - checkpoint.x) ** 2 + (y - checkpoint.y) ** 2) <= max(CHECKPOINT_SIZE):
-                        in_city_or_checkpoint = True
-                        break
-                if not in_city_or_checkpoint:
+                if not in_city:
                     break
             particles.append(Particle(x, y))
             free_particles += 1
@@ -228,15 +187,6 @@ while step < MAX_STEPS and infection_active:
             color = 'red' if city.infected else 'yellow'
             circle = plt.Circle((city.x, city.y), city.radius, color=color, alpha=0.5)
             plt.gca().add_patch(circle)
-
-        # Plot checkpoints
-        for checkpoint in checkpoints:
-            rect = Rectangle(
-                (checkpoint.x - checkpoint.width / 2, checkpoint.y - checkpoint.height / 2),
-                checkpoint.width, checkpoint.height,
-                angle=checkpoint.angle, color='green', alpha=0.5
-            )
-            plt.gca().add_patch(rect)
 
         plt.title(f"Step {step}")
         plt.savefig(f"simulation_images/snapshot_step_{step}.png")

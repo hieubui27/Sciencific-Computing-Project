@@ -1,14 +1,14 @@
-import imageio
+import imageio.v3 as imageio
 import os
 
 # Thư mục chứa ảnh
-folder = 'D:\DLA\RobotPath'
+folder = 'D:\\DLA\\simulation_images'
 # Tên file GIF đầu ra
-output_gif = 'Robot.gif'
+output_gif = 'Robot1.gif'
 
 # Lấy danh sách file ảnh PNG, sắp xếp theo thứ tự
 images = sorted([img for img in os.listdir(folder) if img.endswith('.png')],
-                key=lambda x: int(x.split('.')[0]))
+                key=lambda x: int(x.split('_')[-1].split('.')[0]))
 
 # Đọc ảnh và tạo GIF
 frames = []
@@ -18,5 +18,5 @@ for filename in images:
     frames.append(image)
 
 # Lưu thành GIF
-imageio.mimsave(output_gif, frames, duration=0.2)  # duration: thời gian giữa các frame (giây)
+imageio.imwrite(output_gif, frames, duration=0.2)
 print("GIF created:", output_gif)
