@@ -2,9 +2,9 @@ import imageio
 import os
 
 # Thư mục chứa ảnh
-folder = 'D:\DLA\Images'
+folder = 'D:\DLA\RobotPath'
 # Tên file GIF đầu ra
-output_gif = 'dla_simulation1.gif'
+output_gif = 'Robot.gif'
 
 # Lấy danh sách file ảnh PNG, sắp xếp theo thứ tự
 images = sorted([img for img in os.listdir(folder) if img.endswith('.png')],
